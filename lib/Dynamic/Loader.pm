@@ -16,7 +16,7 @@ Version 0.01
 
 =cut
 our ($VERSION, $javaperl, @ISA, @EXPORT);
-$VERSION = '0.01';
+$VERSION = '0.10';
 @ISA = qw(Exporter);
 @EXPORT=qw($javaperl getscriptenv);
 
@@ -27,12 +27,12 @@ my $confpath;
 =head1 SYNOPSIS
 
     This package manage hidden modules deployed. This module depend on 
-    a java project that embedded perl modules and script on a compressed jar.
-    The modules and script positions are discribed on a configuration file.
-    THe configuration directory can be specifued by the $JAVAPERL environnement. 
+    java project that embedded perl modules and script on a compressed jar.
+    The modules and scripts positions are discribed on a configuration file.
+    The configuration directory can be specified by the $JAVAPERL environnement. 
     The default directory is $HOME/.perljava/conf
     
-    A configuration is <name>.conf with theis format:
+    A configuration is <name>.conf with this format:
         prefix=<absolute path>
         bin=<relative binary dir>
         lib=<relative library dir>
@@ -75,7 +75,6 @@ sub init{
     my @config=();
     
     push (@config, $confpath) if defined $confpath;
-    push (@config, dirname($ENV{PHENYXCONFIGFILE})) if defined $ENV{PHENYXCONFIGFILE};
     push (@config, $ENV{JAVAPERL}) if defined $ENV{JAVAPERL};
     push (@config, "$ENV{HOME}/.perljava/conf/");
 
