@@ -8,7 +8,7 @@ use File::Basename;
 
 =head1 NAME
 
-Dynamic::Loader - call a script without to know where is it and where are his bundles.
+Dynamic::Loader - call a script without to know where is his location.
 
 =head1 VERSION
 
@@ -16,7 +16,7 @@ Version 0.01
 
 =cut
 our ($VERSION, $javaperl, @ISA, @EXPORT);
-$VERSION = '0.10';
+$VERSION = '0.11';
 @ISA = qw(Exporter);
 @EXPORT=qw($javaperl getscriptenv);
 
@@ -26,11 +26,12 @@ my $confpath;
 
 =head1 SYNOPSIS
 
-    This package manage hidden modules deployed. This module depend on 
-    java project that embedded perl modules and script on a compressed jar.
-    The modules and scripts positions are discribed on a configuration file.
-    The configuration directory can be specified by the $JAVAPERL environnement. 
-    The default directory is $HOME/.perljava/conf
+    The Dynamic::Loader manage the dynamic location of scripts and bundles. 
+    Scripts and bundles are packaged in there own directory.
+    The bundles and scripts locations are discribed on a named configuration file. 
+    The prefix configuration directory can be specified by the $JAVAPERL environnement. 
+    The default directory is $HOME/.perljava/conf, but you can specify a custom
+    prefix with the $JAVAPERL/conf variable.
     
     A configuration is <name>.conf with this format:
         prefix=<absolute path>
@@ -50,11 +51,10 @@ command:
 
 =head1 DEFAULT MODULE CONF PATH
 
-Configuration directory is specified by the ENV variable JAVAPERL or at 
-HOME/.perljava/conf.
-But, you can also specify the configuration directory on the command line:
+Configuration directory is specified by the environment variable JAVAPERL or at 
+HOME/.perljava/conf. The prefix location can also specified by the command line:
 
-    % perl -MDynamic::Loader='scriptname.pl --a=A --b=B',/dir/to/config
+    % perl -MDynamic::Loader='scriptname.pl --a=A --b=B',/dir/to/packages
 
 
 =head1 EXPORT
