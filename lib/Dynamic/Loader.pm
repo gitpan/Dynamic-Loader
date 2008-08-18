@@ -16,7 +16,7 @@ Version 0.01
 
 =cut
 our ($VERSION, $javaperl, @ISA, @EXPORT);
-$VERSION = '0.11';
+$VERSION = '0.12';
 @ISA = qw(Exporter);
 @EXPORT=qw($javaperl getscriptenv);
 
@@ -38,9 +38,9 @@ my $confpath;
         bin=<relative binary dir>
         lib=<relative library dir>
 
-    You can use to command to call a script:
+    You can use two methods to call a script:
         perl -MDynamic::Loader='scriptname.pl --a=... --b=...'
-        loader.pl scriptname.pl --a=... --b=...
+        perl -S loader.pl scriptname.pl --a=... --b=...
 
 =head1 DEFAULT SCRIPT AND PARAMS
 
