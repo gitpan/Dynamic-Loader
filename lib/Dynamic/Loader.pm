@@ -5,9 +5,10 @@ require Exporter;
 use Carp qw/confess/;
 use Env::Path;
 use File::Basename;
+require Data::Dumper if defined ($ENV{DEBUG});
 
 our ($VERSION, $BINPATH, @ISA, @EXPORT);
-$VERSION = '0.9';
+$VERSION = '0.99';
 
 =head1 NAME
 
@@ -15,7 +16,7 @@ Dynamic::Loader - call a script without to know where is his location.
 
 =head1 VERSION
 
-Version 0.9
+Version 0.99
 
 =head1 SYNOPSIS
 
@@ -31,20 +32,18 @@ Version 0.9
         bin=<relative binary dir>
         lib=<relative library dir>
 
-    Use it to call a script:
-        perl -S fromjar.pl scriptname.pl --a=... --b=...
 
 =head1 DEFAULT SCRIPT AND PARAMS
 
 When C<Dynamic::Loader> is used, you can specify the script name and his options
 command:
+        perl -S fromjar.pl scriptname.pl --a=... --b=...
 
-    % perl -MDynamic::Loader='scriptname.pl --a=A --b=B'
 
 =cut
 
 @ISA = qw(Exporter);
-@EXPORT=qw($SCRIPTPATH $PATH $PERL5LIB &listScripts, &getExecPrefix);
+@EXPORT=qw($SCRIPTPATH, $PATH, $PERL5LIB, &listScripts, &getExecPrefix);
 our (
      $SCRIPTPATH,
      $PATH,
@@ -67,8 +66,10 @@ setup libs and bin directories
 =cut
 
 sub init{
-  my $perlJavaHome=$ENV{PERLLOADERHOME} || "$ENV{HOME}/.perljava";
-
+  my $perlJavaHome;
+  $perlJavaHome=$ENV{PERLLOADERHOME} || $ENV{JAVAPERL};
+  $perlJavaHome="$ENV{HOME}/.perljava" unless defined $perlJavaHome;
+  
   #$ENV{PATH}='';
   $PATH = Env::Path->PATH;
   $SCRIPTPATH = Env::Path->SCRIPTPATH;
@@ -76,23 +77,38 @@ sub init{
 
   #TODO change that from ENV
   my @modules;
+  my %conffiles;
   if($ENV{PERLLOADERMODULES}){
     @modules=split /:/, $ENV{PERLLOADERMODULES};
   }else{
-    foreach (<$perlJavaHome/*>){
-      push @modules, basename($_) if -d "$_/resources";
+    foreach (<$perlJavaHome/conf/*.conf>){
+      open (CONFIGFILE, $_) or next;
+      my %entry=();
+      while (my $l = <CONFIGFILE>) {
+         if ($l =~ /^([^=]+)=(.*)/) {
+            my ($key, $val) = ($1, $2);
+            if ($key eq "prefix"){
+              $conffiles{$val}=\%entry;
+              push @modules, $val ;
+            }else{
+              $entry{$key}=$val;
+            }
+         }
+      }
+      close CONFIGFILE;
     }
+    
   }
-
+  printf Dumper(\%conffiles)."\n" if defined ($ENV{DEBUG});
   foreach my $pjar (@modules) {
-    eval "use lib \"$perlJavaHome/$pjar/resources/lib\"";
+    eval "use lib \"$pjar/$conffiles{$pjar}->{lib}\"";
   }
   #we wish to put the path from the given directory, but in the correct order, and in front of all other.
   foreach my $pjar (reverse @modules) {
-    my $bin="$perlJavaHome/$pjar/resources/bin";
+    my $bin="$pjar/$conffiles{$pjar}->{bin}";
     $SCRIPTPATH->Prepend($bin) unless $SCRIPTPATH->Contains($bin);
     $PATH->Prepend($bin) unless $PATH->Contains($bin);
-    my $lib="$perlJavaHome/$pjar/resources/lib";
+    my $lib="$pjar/$conffiles{$pjar}->{lib}";
     $PERL5LIB->Prepend($lib) unless $PERL5LIB->Contains($lib);
   }
 

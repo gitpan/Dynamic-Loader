@@ -6,7 +6,7 @@ scripts/fromjar.pl
 lib/Dynamic/Loader.pm
 t/00-load.t
 t/dl-1.t
-t/module.conf
+t/conf/module.conf
 t/module.pl
 t/module.pm
 t/pod.t
