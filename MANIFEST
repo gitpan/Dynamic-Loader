@@ -2,9 +2,7 @@ Changes
 MANIFEST
 Makefile.PL
 README
-scripts/loader.pl
-scripts/loader-info.pl
-scripts/loader-scripts.pl
+scripts/fromjar.pl
 lib/Dynamic/Loader.pm
 t/00-load.t
 t/dl-1.t
@@ -12,4 +10,6 @@ t/module.conf
 t/module.pl
 t/module.pm
 t/pod.t
+bash.rc/fromjar.bashrc
+
 META.yml                                 Module meta-data (added by MakeMaker)

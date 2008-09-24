@@ -1,10 +1,13 @@
 package Dynamic::Loader;
+use strict;
 
 require Exporter;
-use warnings;
-use strict;
+use Carp qw/confess/;
+use Env::Path;
 use File::Basename;
 
+our ($VERSION, $BINPATH, @ISA, @EXPORT);
+$VERSION = '0.9';
 
 =head1 NAME
 
@@ -12,17 +15,7 @@ Dynamic::Loader - call a script without to know where is his location.
 
 =head1 VERSION
 
-Version 0.01
-
-=cut
-our ($VERSION, $javaperl, @ISA, @EXPORT);
-$VERSION = '0.12';
-@ISA = qw(Exporter);
-@EXPORT=qw($javaperl getscriptenv);
-
-my $scriptlib;
-my $scriptbin;
-my $confpath;
+Version 0.9
 
 =head1 SYNOPSIS
 
@@ -38,9 +31,8 @@ my $confpath;
         bin=<relative binary dir>
         lib=<relative library dir>
 
-    You can use two methods to call a script:
-        perl -MDynamic::Loader='scriptname.pl --a=... --b=...'
-        perl -S loader.pl scriptname.pl --a=... --b=...
+    Use it to call a script:
+        perl -S fromjar.pl scriptname.pl --a=... --b=...
 
 =head1 DEFAULT SCRIPT AND PARAMS
 
@@ -49,134 +41,133 @@ command:
 
     % perl -MDynamic::Loader='scriptname.pl --a=A --b=B'
 
-=head1 DEFAULT MODULE CONF PATH
+=cut
 
-Configuration directory is specified by the environment variable JAVAPERL or at 
-HOME/.perljava/conf. The prefix location can also specified by the command line:
+@ISA = qw(Exporter);
+@EXPORT=qw($SCRIPTPATH $PATH $PERL5LIB &listScripts, &getExecPrefix);
+our (
+     $SCRIPTPATH,
+     $PATH,
+     $PERL5LIB,
+    );
 
-    % perl -MDynamic::Loader='scriptname.pl --a=A --b=B',/dir/to/packages
+sub import {
+    my $class=shift;
+    #@_ contains what could be passed on -MLoader=...; iv ever
+    init();
+    $class->export_to_level(1, $class, @_) ;
+}
 
+=head3 init()
 
-=head1 EXPORT
+setup libs and bin directories
 
-
+#fix lib and script path according to what's given
 
 =cut
 
-sub readfile{
-    my ( $f ) = @_;
-    open F, "< $f" or die "Can't open $f : $!";
-    my @f = <F>;
-    close F;
-    return @f;
-}
-    
 sub init{
-    my @config=();
-    
-    push (@config, $confpath) if defined $confpath;
-    push (@config, $ENV{JAVAPERL}) if defined $ENV{JAVAPERL};
-    push (@config, "$ENV{HOME}/.perljava/conf/");
+  my $perlJavaHome=$ENV{PERLLOADERHOME} || "$ENV{HOME}/.perljava";
 
-    #FIXME basename is not a good idea (ex: manage/showPouet.pl)
-    my $script=basename($0) if $0=~/.*\.pl/;
+  #$ENV{PATH}='';
+  $PATH = Env::Path->PATH;
+  $SCRIPTPATH = Env::Path->SCRIPTPATH;
+  $PERL5LIB = Env::Path->PERL5LIB;
 
-    #load plugins config 
-    foreach my $path (@config){
-        if (-d "$path"){
-            opendir(DIR, $path);
-            my @dir=readdir(DIR);
-            closedir(DIR);
-            my @conffiles = grep(/\.conf$/,@dir);
-#            my @pmfiles = grep(/\.pm$/,@dir);
-#            foreach my $c (@pmfiles){
-#                print STDERR "DEBUG: -->$path/$c\n";
-#                do  "$path/$c";
-#            }
-            foreach my $c (@conffiles){;
-                my $bname=basename($c);
-                $bname=~ s/.conf$//m;
-                my @conf=readfile "$path/$c";
-                my %lastentry;
-                
-                foreach my $l (@conf){
-                    $l=~/(^[\w\.]+?)=(.+)$/;
-                    $lastentry{$1}=$2 if ($1 && $2);
-                }
-                if (%lastentry){
-                    $javaperl->{"$bname"}=\%lastentry;
-                
-                    #if script exist setup the lib path
-                    if ( $lastentry{'prefix'} && $lastentry{'bin'} && $lastentry{'lib'} && $script &&
-                        -r $lastentry{'prefix'}.$lastentry{'bin'}."/$script"){
-                        $scriptbin=$lastentry{'prefix'}.$lastentry{'bin'}."/$script";
-                        $scriptlib=$lastentry{'prefix'}.$lastentry{'lib'};
-                    }
-                }
-                
-                
-            }
-            goto OUT;
-        }
+  #TODO change that from ENV
+  my @modules;
+  if($ENV{PERLLOADERMODULES}){
+    @modules=split /:/, $ENV{PERLLOADERMODULES};
+  }else{
+    foreach (<$perlJavaHome/*>){
+      push @modules, basename($_) if -d "$_/resources";
     }
-    OUT:
-}
-# Hook on export recursion, 
-# Script and params could be defined on import module
-#  perl -MDynamic::Loader='scriptname.pl --params ...'
-#
-# this is a method to call a script without to know where are his bundles and binary
-# this part setup env to autorun command whitout using the loader.pl prefix.
-my $autorun;
-sub import {
-    my $class=shift;
-    if (@_ && defined $_[1] && -d $_[1]){
-        $confpath=$_[1];
-        delete $_[1];
-    }
-    init();
-    #be sure to not modify @_ before the end of export chain
-    if (@_ && $_[0]=~/.*\.pl/){
-        my @M=split(' ',$_[0]);
-        ($scriptlib,$scriptbin)=getscriptenv(shift(@M));
-	    foreach my $a (@M){
-        	$autorun.=$a;
-	    }
-	    $autorun= ' ' unless $autorun;
-        shift(@_);    	
-    }
-    $class->export_to_level(1, $class, @_) ;    	
-}
+  }
 
-#call script configured by import.
-END{
-    exit system("perl -I$scriptlib $scriptbin $autorun") if defined($autorun);
+  foreach my $pjar (@modules) {
+    eval "use lib \"$perlJavaHome/$pjar/resources/lib\"";
+  }
+  #we wish to put the path from the given directory, but in the correct order, and in front of all other.
+  foreach my $pjar (reverse @modules) {
+    my $bin="$perlJavaHome/$pjar/resources/bin";
+    $SCRIPTPATH->Prepend($bin) unless $SCRIPTPATH->Contains($bin);
+    $PATH->Prepend($bin) unless $PATH->Contains($bin);
+    my $lib="$perlJavaHome/$pjar/resources/lib";
+    $PERL5LIB->Prepend($lib) unless $PERL5LIB->Contains($lib);
+  }
+
 }
 
 
-#looking for a script
-sub getscriptenv{
-    my ($script)=@_;
-    return ($scriptlib,$scriptbin) if ($scriptlib && $scriptbin);
 
-    foreach my $mod (keys %{$javaperl}){
-        my $prefix="$javaperl->{$mod}->{'prefix'}/";
-        my $bin=$prefix.$javaperl->{$mod}->{'bin'}."/$script" if defined($javaperl->{$mod}->{'bin'});
-        my $inc=$prefix.$javaperl->{$mod}->{'lib'}if defined($javaperl->{$mod}->{'lib'});
-        if (defined($bin) && -r $bin){
-            return ($inc, $bin);
-        }
-        
+=head3 Dynamic::Loader::listScripts([patt])
+
+Return a list of commands following a pattern listScripts(), listScripts("*.pl"), listScripts("phe*")
+
+The commands returned here are returned with a relative path to the package they belong to
+
+=cut
+
+sub listScripts{
+  require File::Find::Rule;
+
+  my @tmp;
+  foreach my $p($SCRIPTPATH->List){
+    foreach ( File::Find::Rule->file()
+	      ->name( $_[0] or "*" )
+	      ->in( $p )){
+      s/^$p([\/\\])?//;
+      push @tmp, $_;
     }
-    
-    die "ERROR: Cannot open executable $script (No such file)\n";
+  }
+  return @tmp;
 }
 
 
+=head3 Dynamic::Loader::getScript(relative_path)
+
+Return the complete path to the given scripts.
+
+Contrary to listScripts(), this command must return exactly one script and will die if not;
+
+=cut
+
+sub getScript{
+  my $relPath=shift or confess "no relative path given";
+  my @tmp;
+  foreach ($SCRIPTPATH->List){
+    my $full="$_/$relPath";
+    push  @tmp, $full if -f $full;
+  }
+  confess "no script found for [$relPath]" unless @tmp;
+  confess "multiple scripts found (@tmp) for [$relPath]" if @tmp>1;
+  return $tmp[0];
+}
+
+=head3  Dynamic::Loader::getExecPrefix()
+
+return an array to prepend to execution (perl, includes etc...)
+
+=cut
+
+sub getExecPrefix{
+  return ($^X);
+}
+
+=head3 Dynamic::Loader::whence([pat])
+
+return a list of commands with the full path corresponding to a pattern. Think of ls completion in bash
+
+=cut
+
+sub whence{
+  return $SCRIPTPATH->Whence($_[0] or "*");
+}
 
 =head1 AUTHOR
 
 Olivier Evalet, C<< <olivier.evalet at genebio.com> >>
+Alexandre Masselo C<< <alex at genebio.com> >>
 
 =head1 BUGS
 
@@ -222,7 +213,7 @@ L<http://search.cpan.org/dist/Dynamic-Loader>
 
 =head1 COPYRIGHT & LICENSE
 
-Copyright 2008 Olivier Evalet, all rights reserved.
+Copyright 2008 Olivier Evalet, Alexandre Masselot all rights reserved.
 
 This program is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.
