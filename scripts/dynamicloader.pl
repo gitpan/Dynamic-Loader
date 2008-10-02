@@ -12,5 +12,4 @@ my $script=Dynamic::Loader::getScript(shift @ARGV);
 my @tmp=(Dynamic::Loader::getExecPrefix(), $script, @ARGV);
 
 warn "executing @tmp";
-warn "warn @INC";
 exec(@tmp);
