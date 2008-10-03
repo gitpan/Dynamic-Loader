@@ -8,7 +8,7 @@ use File::Basename;
 require Data::Dumper if defined ($ENV{DEBUG});
 
 our ($VERSION, $BINPATH, @ISA, @EXPORT);
-$VERSION = '1.00';
+$VERSION = '1.01';
 
 =head1 NAME
 
@@ -43,7 +43,7 @@ command:
 =cut
 
 @ISA = qw(Exporter);
-@EXPORT=qw($SCRIPTPATH, $PATH, $PERL5LIB, &listScripts, &getExecPrefix);
+@EXPORT=qw($SCRIPTPATH $PATH $PERL5LIB &listScripts &getExecPrefix);
 our (
      $SCRIPTPATH,
      $PATH,
@@ -99,7 +99,8 @@ sub init{
     }
     
   }
-  printf Dumper(\%conffiles)."\n" if defined ($ENV{DEBUG});
+  require Data::Dumper if defined ($ENV{DEBUG});
+  printf Data::Dumper::Dumper(\%conffiles)."\n" if defined ($ENV{DEBUG});
   foreach my $pjar (@modules) {
     eval "use lib \"$pjar/$conffiles{$pjar}->{lib}\"";
   }
@@ -126,12 +127,14 @@ The commands returned here are returned with a relative path to the package they
 
 sub listScripts{
   require File::Find::Rule;
+  my $patt=shift || '*';
 
   my @tmp;
   foreach my $p($SCRIPTPATH->List){
     foreach ( File::Find::Rule->file()
-	      ->name( $_[0] or "*" )
+	      ->name( $patt )
 	      ->in( $p )){
+      next if /\/\.svn\//;
       s/^$p([\/\\])?//;
       push @tmp, $_;
     }

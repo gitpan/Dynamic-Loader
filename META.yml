@@ -1,12 +1,20 @@
-# http://module-build.sourceforge.net/META-spec.html
-#XXXXXXX This is a prototype!!!  It will change in the future!!! XXXXX#
-name:         Dynamic-Loader
-version:      1.00
-version_from: lib/Dynamic/Loader.pm
-installdirs:  site
-requires:
-    Env::Path:                     0
-    Test::More:                    0
-
-distribution_type: module
-generated_by: ExtUtils::MakeMaker version 6.30_01
+---
+name: Dynamic-Loader
+version: 1.01
+author:
+  - 'Olivier Evalet <olivier.evalet@genebio.com>, Alexandre Masselot<alexandre.masselot@genebio.com>'
+abstract: call a script without to know where is his location.
+license: perl
+resources:
+  license: http://dev.perl.org/licenses/
+build_requires:
+  Env::Path: 0
+  Test::More: 0
+provides:
+  Dynamic::Loader:
+    file: lib/Dynamic/Loader.pm
+    version: 1.01
+generated_by: Module::Build version 0.2808
+meta-spec:
+  url: http://module-build.sourceforge.net/META-spec-v1.2.html
+  version: 1.2

@@ -1,4 +1,4 @@
-function _fromjar_script_completion()
+function _dynamicloader_script_completion()
 {
     local cur prev opts
     COMPREPLY=()
@@ -17,4 +17,4 @@ function _fromjar_script_completion()
       COMPREPLY=( $(compgen -f ${cur}) )
     fi
 }
-complete -F _fromjar_script_completion fromjar.pl
+complete -F _dynamicloader_script_completion dynamicloader.pl
