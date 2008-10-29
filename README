@@ -39,6 +39,10 @@ DEFAULT SCRIPT AND PARAMS
     Contrary to listScripts(), this command must return exactly one script
     and will die if not;
 
+   Dynamic::Loader::getLibs(relative_path)
+    Return the complete path to the given scripts + the complete perl prefix
+    with perl5libs.
+
    Dynamic::Loader::getExecPrefix()
     return an array to prepend to execution (perl, includes etc...)
 

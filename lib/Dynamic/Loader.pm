@@ -8,7 +8,7 @@ use File::Basename;
 require Data::Dumper if defined ($ENV{DEBUG});
 
 our ($VERSION, $BINPATH, @ISA, @EXPORT);
-$VERSION = '1.01';
+$VERSION = '1.02';
 
 =head1 NAME
 
@@ -161,6 +161,24 @@ sub getScript{
   confess "no script found for [$relPath]" unless @tmp;
   confess "multiple scripts found (@tmp) for [$relPath]" if @tmp>1;
   return $tmp[0];
+}
+
+=head3 Dynamic::Loader::getLibs(relative_path)
+
+Return the complete path to the given scripts + the complete perl prefix with perl5libs.
+
+=cut
+
+
+sub getLongScript{
+  my $relPath=shift or confess "no relative path given";
+  my $path=getScript($relPath);
+  my $p5l="perl ";
+  foreach ($PERL5LIB->List){
+  	$p5l.="-I$_ ";
+  }
+  
+  return $p5l.$path;
 }
 
 =head3  Dynamic::Loader::getExecPrefix()

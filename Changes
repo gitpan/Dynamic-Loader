@@ -3,3 +3,7 @@ Revision history for Dynamic-Loader
 0.01    Date/time
         First version, released on an unsuspecting world.
 
+
+1.02	20081029 
+	Add getLongScript function to get script path + libs prefix
+
