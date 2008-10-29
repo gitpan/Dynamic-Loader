@@ -8,7 +8,7 @@ use File::Basename;
 require Data::Dumper if defined ($ENV{DEBUG});
 
 our ($VERSION, $BINPATH, @ISA, @EXPORT);
-$VERSION = '1.02';
+$VERSION = '1.03';
 
 =head1 NAME
 
@@ -107,9 +107,11 @@ sub init{
   #we wish to put the path from the given directory, but in the correct order, and in front of all other.
   foreach my $pjar (reverse @modules) {
     my $bin="$pjar/$conffiles{$pjar}->{bin}";
+    $bin=~ s/\/\//\//g;
     $SCRIPTPATH->Prepend($bin) unless $SCRIPTPATH->Contains($bin);
     $PATH->Prepend($bin) unless $PATH->Contains($bin);
     my $lib="$pjar/$conffiles{$pjar}->{lib}";
+    $lib=~ s/\/\//\//g;
     $PERL5LIB->Prepend($lib) unless $PERL5LIB->Contains($lib);
   }
 
@@ -178,7 +180,8 @@ sub getLongScript{
   	$p5l.="-I$_ ";
   }
   
-  return $p5l.$path;
+  printf "---> $p5l$path \n" if defined ($ENV{DEBUG});
+  return "$p5l$path";
 }
 
 =head3  Dynamic::Loader::getExecPrefix()
