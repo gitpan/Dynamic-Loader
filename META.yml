@@ -1,6 +1,6 @@
 ---
 name: Dynamic-Loader
-version: 1.03
+version: 1.05
 author:
   - 'Olivier Evalet <olivier.evalet@genebio.com>, Alexandre Masselot<alexandre.masselot@genebio.com>'
 abstract: call a script without to know where is his location.
@@ -13,7 +13,7 @@ build_requires:
 provides:
   Dynamic::Loader:
     file: lib/Dynamic/Loader.pm
-    version: 1.03
+    version: 1.05
 generated_by: Module::Build version 0.2808
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.2.html
