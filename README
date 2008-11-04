@@ -1,9 +1,6 @@
 NAME
     Dynamic::Loader - call a script without to know where is his location.
 
-VERSION
-    Version 0.99
-
 SYNOPSIS
         The Dynamic::Loader manage the dynamic location of scripts and bundles. 
         Scripts and bundles are packaged in there own directory.

@@ -8,15 +8,12 @@ use File::Basename;
 require Data::Dumper if defined( $ENV{DEBUG} );
 
 our ( $VERSION, $BINPATH, @ISA, @EXPORT );
-$VERSION = '1.05';
+$VERSION = '1.06';
 
 =head1 NAME
 
 Dynamic::Loader - call a script without to know where is his location.
 
-=head1 VERSION
-
-Version 0.99
 
 =head1 SYNOPSIS
 

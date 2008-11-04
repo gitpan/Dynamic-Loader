@@ -20,6 +20,7 @@ my $builder = Module::Build->new(
     build_requires => {
 		       'Test::More' => 0,
 		       'Env::Path' => 0,
+		       'File::find::Rule' => 0,
     },
     script_files=>\@scripts,
     add_to_cleanup      => [ 'Dynamic-Loader-*' ],

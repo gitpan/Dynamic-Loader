@@ -11,6 +11,7 @@ WriteMakefile
           'VERSION_FROM' => 'lib/Dynamic/Loader.pm',
           'PREREQ_PM' => {
                            'Test::More' => 0,
+                           'File::find::Rule' => 0,
                            'Env::Path' => 0
                          }
         )
