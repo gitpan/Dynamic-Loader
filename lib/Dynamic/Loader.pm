@@ -8,7 +8,7 @@ use File::Basename;
 require Data::Dumper if defined( $ENV{DEBUG} );
 
 our ( $VERSION, $BINPATH, @ISA, @EXPORT );
-$VERSION = '1.06';
+$VERSION = '1.07';
 
 =head1 NAME
 
