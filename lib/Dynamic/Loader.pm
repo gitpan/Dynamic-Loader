@@ -8,7 +8,7 @@ use File::Basename;
 require Data::Dumper if defined( $ENV{DEBUG} );
 
 our ( $VERSION, $BINPATH, @ISA, @EXPORT );
-$VERSION = '1.07';
+$VERSION = '1.08';
 
 =head1 NAME
 
@@ -185,7 +185,7 @@ Return the complete path to the given scripts + the complete perl prefix with pe
 sub getLongScript {
 	my $relPath = shift or confess "no relative path given";
 	my $path    = getScript($relPath);
-	my $p5l     = "perl ";
+	my $p5l     = "$^X ";
 	foreach ( $PERL5LIB->List ) {
 		$p5l .= "-I$_ ";
 	}
